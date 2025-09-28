@@ -2,8 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const request = require("request");
 const app = express();
-require("dotenv").config();
-
+require('dotenv').config({ path: 'key.env' });
 
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({extended:true}));
@@ -34,12 +33,18 @@ app.post("/",function (req ,res){
 
     const listId = process.env.MAILCHIMP_LIST_ID;
     const apiKey = process.env.MAILCHIMP_API_KEY;
+    
+    
+    console.log("API Key suffix:", apiKey?.slice(-6));  // <---- add this
+    console.log("List ID:", listId); 
 
-    const url = "https://us14.api.mailchimp.com/3.0/lists/${listId}";
+    const dc = apiKey.split("-")[1]; // extracts "us14" from key
+    const url = `https://${dc}.api.mailchimp.com/3.0/lists/${listId}`;
+
 
     const options = {
         method : "POST",
-        auth : "reeny:${apiKey}"
+        auth : `anystring:${apiKey}`
     };
 
     const request = https.request(url,options, function(response){
@@ -53,9 +58,10 @@ app.post("/",function (req ,res){
         }
 
 
-        response.on("data", function(data){
-            console.log(JSON.parse(data));
-        })
+        response.on("data", function(data) {
+            console.log("Mailchimp response:", JSON.parse(data));
+        });
+
         
 
     });
